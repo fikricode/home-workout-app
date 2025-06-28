@@ -5,8 +5,8 @@ import { getPackageById } from "@/lib/actions";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-export default async function PackageDetailPage({ props }: { props: { packageId: string } }) {
-  const pkg = await getPackageById(Number(props.packageId));
+export default async function PackageDetailPage({ packageId }: { packageId: string }) {
+  const pkg = await getPackageById(Number(packageId));
 
   if (!pkg) {
     notFound();
