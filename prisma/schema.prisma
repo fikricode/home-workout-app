@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // Connects to the database 
+}
+
+// Stores all individual available movements [cite: 13]
+model Movement {
+  id                 Int      @id @default(autoincrement())
+  name               String   @db.VarChar(255)
+  description        String?
+  image_url          String?  @db.VarChar(255)
+  video_url          String?  @db.VarChar(255)
+  duration_seconds   Int      // Duration of the movement in seconds 
+  reps               Int      // Suggested number of repetitions 
+  rest_after_seconds Int      // Rest time after this movement 
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relation to the join table
+  packages PackageMovement[]
+}
+
+// Stores information about each workout package [cite: 15]
+model WorkoutPackage {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(255)
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relation to the join table
+  movements PackageMovement[]
+}
+
+// Join table to handle the many-to-many relationship 
+model PackageMovement {
+  id          Int     @id @default(autoincrement())
+  packageId   Int     @map("package_id")
+  movementId  Int     @map("movement_id")
+  sequence    Int     // Order of the movement in the package (1, 2, 3, ...) [cite: 17]
+
+  // Relations
+  workoutPackage WorkoutPackage @relation(fields: [packageId], references: [id], onDelete: Cascade) // [cite: 18]
+  movement       Movement       @relation(fields: [movementId], references: [id], onDelete: Restrict) // [cite: 19]
+
+  // Constraints
+  @@unique([packageId, sequence]) // Ensures unique sequence per package [cite: 17]
+  @@map("PackageMovement")
+}
